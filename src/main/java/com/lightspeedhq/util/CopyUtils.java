@@ -94,12 +94,12 @@ public final class CopyUtils {
         if (clazz.isArray()) {
             final int length = Array.getLength(obj);
             final Object arrayCopy = Array.newInstance(clazz.componentType(), length);
+            converted.put(obj, arrayCopy);
             for (int i = 0; i < length; i++) {
                 final Object element = Array.get(obj, i);
                 final Object copyElement = internalDeepCopy(converted, element);
                 Array.set(arrayCopy, i, copyElement);
             }
-            converted.put(obj, arrayCopy);
             return arrayCopy;
         }
 
@@ -107,10 +107,10 @@ public final class CopyUtils {
         if (obj instanceof Collection<?>) {
             final Collection<Object> collection = (Collection<Object>) obj;
             final Collection<Object> collectionCopy = (Collection<Object>) instantiate(clazz);
+            converted.put(collection, collectionCopy);
             for (Object o : collection) {
                 collectionCopy.add(internalDeepCopy(converted, o));
             }
-            converted.put(collection, collectionCopy);
             return collectionCopy;
         }
 
@@ -118,25 +118,26 @@ public final class CopyUtils {
         if (obj instanceof Map<?, ?>) {
             final Map<Object, Object> map = (Map<Object, Object>) obj;
             final Map<Object, Object> mapCopy = (Map<Object, Object>) instantiate(map.getClass());
+            converted.put(map, mapCopy);
             for (Map.Entry<?, ?> entry : map.entrySet()) {
                 final Object copyKey = internalDeepCopy(converted, entry.getKey());
                 final Object copyValue = internalDeepCopy(converted, entry.getValue());
                 mapCopy.put(copyKey, copyValue);
             }
-            converted.put(map, mapCopy);
             return mapCopy;
         }
 
         // Handling other objects
         final Object objCopy = instantiate(clazz);
+        converted.put(obj, objCopy);
         visitSupers(clazz, aClass -> {
             Field[] fields = aClass.getDeclaredFields();
             for (Field field : fields) {
                 if (!Modifier.isStatic(field.getModifiers())) {
                     field.setAccessible(true);
                     try {
-                        Object value = field.get(obj);
-                        Object copyValue = internalDeepCopy(converted, value);
+                        final Object value = field.get(obj);
+                        final Object copyValue = internalDeepCopy(converted, value);
                         field.set(objCopy, copyValue);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -144,7 +145,6 @@ public final class CopyUtils {
                 }
             }
         });
-        converted.put(obj, objCopy);
         return objCopy;
     }
 
