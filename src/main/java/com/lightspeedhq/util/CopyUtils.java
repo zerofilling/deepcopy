@@ -110,6 +110,7 @@ public final class CopyUtils {
         }
 
         // Handling maps
+        // todo this can be implemented with abstraction like Collections if there is something like Arraylist in arrays in map implementations
         if (obj instanceof Map<?, ?>) {
             final Map<Object, Object> map = (Map<Object, Object>) obj;
             final Map<Object, Object> mapCopy = (Map<Object, Object>) InstantiateUtils.instantiate(map.getClass());
