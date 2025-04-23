@@ -2,6 +2,8 @@ package com.lightspeedhq.util;
 
 import com.lightspeedhq.util.collections.CollectionOpFactory;
 import com.lightspeedhq.util.collections.ICollectionOp;
+import com.lightspeedhq.util.map.IMapOp;
+import com.lightspeedhq.util.map.MapOpFactory;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -98,7 +100,6 @@ public final class CopyUtils {
         if (obj instanceof Collection<?>) {
             final Collection<Object> collection = (Collection<Object>) obj;
 
-
             ICollectionOp collectionCopyOp = CollectionOpFactory.of(clazz.getName());
 
             for (Object o : collection) {
@@ -110,16 +111,18 @@ public final class CopyUtils {
         }
 
         // Handling maps
-        // todo this can be implemented with abstraction like Collections if there is something like Arraylist in arrays in map implementations
         if (obj instanceof Map<?, ?>) {
             final Map<Object, Object> map = (Map<Object, Object>) obj;
-            final Map<Object, Object> mapCopy = (Map<Object, Object>) InstantiateUtils.instantiate(map.getClass());
-            converted.put(map, mapCopy);
+
+            IMapOp mapCopyOp = MapOpFactory.of(clazz.getName());
+
             for (Map.Entry<?, ?> entry : map.entrySet()) {
                 final Object copyKey = internalDeepCopy(converted, entry.getKey());
                 final Object copyValue = internalDeepCopy(converted, entry.getValue());
-                mapCopy.put(copyKey, copyValue);
+                mapCopyOp.put(copyKey, copyValue);
             }
+            Map<Object, Object> mapCopy = mapCopyOp.getMap();
+            converted.put(map, mapCopy);
             return mapCopy;
         }
 

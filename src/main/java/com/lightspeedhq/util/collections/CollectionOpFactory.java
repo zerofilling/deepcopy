@@ -32,16 +32,14 @@ public final class CollectionOpFactory {
      * that are not specifically handled as immutable collections.
      * </p>
      */
-    private final static Function<Class<Collection<Object>>, ICollectionOp> DEFAULT_COLLECTION = new Function<Class<Collection<Object>>, ICollectionOp>() {
-        @Override
-        public ICollectionOp apply(Class<Collection<Object>> objectClass) {
-            try {
-                return new DefaultCollectionOp(objectClass);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    };
+    private final static Function<Class<Collection<Object>>, ICollectionOp> DEFAULT_COLLECTION =
+            objectClass -> {
+                try {
+                    return new DefaultCollectionOp(objectClass);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
 
     /**
      * Private constructor to prevent instantiation of this utility class.
