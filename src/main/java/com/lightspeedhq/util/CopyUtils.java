@@ -1,9 +1,9 @@
 package com.lightspeedhq.util;
 
-import sun.misc.Unsafe;
+import com.lightspeedhq.util.collections.ICollectionOp;
+import com.lightspeedhq.util.collections.CollectionOpFactory;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
@@ -36,15 +36,6 @@ public final class CopyUtils {
             Character.class, Byte.class,
             Short.class, Void.class
     );
-
-    /**
-     * Reference to the Unsafe instance for low-level memory operations.
-     * <p>
-     * Used to create objects without invoking their constructors when
-     * no default constructor is available.
-     * </p>
-     */
-    private static final Unsafe UNSAFE = getUnsafe();
 
     /**
      * Creates a deep copy of the provided object.
@@ -106,18 +97,22 @@ public final class CopyUtils {
         // Handling collections
         if (obj instanceof Collection<?>) {
             final Collection<Object> collection = (Collection<Object>) obj;
-            final Collection<Object> collectionCopy = (Collection<Object>) instantiate(clazz);
-            converted.put(collection, collectionCopy);
+
+
+            ICollectionOp collectionCopyOp = CollectionOpFactory.of(clazz.getName());
+
             for (Object o : collection) {
-                collectionCopy.add(internalDeepCopy(converted, o));
+                collectionCopyOp.add(internalDeepCopy(converted, o));
             }
+            Collection<Object> collectionCopy = collectionCopyOp.getCollection();
+            converted.put(collection, collectionCopy);
             return collectionCopy;
         }
 
         // Handling maps
         if (obj instanceof Map<?, ?>) {
             final Map<Object, Object> map = (Map<Object, Object>) obj;
-            final Map<Object, Object> mapCopy = (Map<Object, Object>) instantiate(map.getClass());
+            final Map<Object, Object> mapCopy = (Map<Object, Object>) InstantiateUtils.instantiate(map.getClass());
             converted.put(map, mapCopy);
             for (Map.Entry<?, ?> entry : map.entrySet()) {
                 final Object copyKey = internalDeepCopy(converted, entry.getKey());
@@ -128,7 +123,7 @@ public final class CopyUtils {
         }
 
         // Handling other objects
-        final Object objCopy = instantiate(clazz);
+        final Object objCopy = InstantiateUtils.instantiate(clazz);
         converted.put(obj, objCopy);
         visitSupers(clazz, aClass -> {
             Field[] fields = aClass.getDeclaredFields();
@@ -163,49 +158,6 @@ public final class CopyUtils {
         while (current != null) {
             classConsumer.accept(current);
             current = current.getSuperclass();
-        }
-    }
-
-    /**
-     * Creates a new instance of the specified class.
-     * <p>
-     * This method attempts to create a new instance using the default constructor.
-     * If no default constructor is available, it uses Unsafe to allocate an instance
-     * without invoking any constructor.
-     * </p>
-     *
-     * @param cls The class to instantiate
-     * @return A new instance of the specified class
-     * @throws Exception If an error occurs during instantiation
-     */
-    private static Object instantiate(Class<?> cls) throws Exception {
-        try {
-            Constructor<?> ctor = cls.getDeclaredConstructor();
-            ctor.setAccessible(true);
-            return ctor.newInstance();
-        } catch (NoSuchMethodException e) {
-            // if there is no default ctor allocate without constructor
-            return UNSAFE.allocateInstance(cls);
-        }
-    }
-
-    /**
-     * Retrieves the Unsafe instance using reflection.
-     * <p>
-     * This method uses reflection to access the otherwise inaccessible Unsafe class,
-     * which provides low-level memory operations.
-     * </p>
-     *
-     * @return The Unsafe instance
-     * @throws RuntimeException If unable to access the Unsafe instance
-     */
-    private static Unsafe getUnsafe() {
-        try {
-            Field f = Unsafe.class.getDeclaredField("theUnsafe");
-            f.setAccessible(true);
-            return (Unsafe) f.get(null);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to access Unsafe", e);
         }
     }
 }
