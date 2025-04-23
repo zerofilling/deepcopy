@@ -237,4 +237,65 @@ public class CopyUtilsTest {
             assertEquals(2, copiedEngineers.size(), "Engineers list size in copy should remain unchanged");
         }
     }
+
+    @Nested
+    @DisplayName("Equality vs Identity Tests")
+    class EqualityVsIdentityTests {
+
+        @Test
+        @DisplayName("Deep copied objects should be equal but not the same instance")
+        void testEqualityVsIdentity() throws Exception {
+            // Create a test class with value equality implementation
+            Person original = new Person("John Doe", 30);
+            
+            // Deep copy
+            Person copy = CopyUtils.deepCopy(original);
+            
+            // Verify equality but not identity
+            assertNotSame(original, copy, "Deep copied object should not be the same instance (==)");
+            assertEquals(original, copy, "Deep copied object should be equal (.equals())");
+            
+            // Modify original and verify copy is unaffected
+            original.setName("Jane Doe");
+            original.setAge(25);
+            
+            assertNotEquals(original, copy, "After modification, objects should no longer be equal");
+            assertEquals("John Doe", copy.getName(), "Copy name should remain unchanged");
+            assertEquals(30, copy.getAge(), "Copy age should remain unchanged");
+        }
+        
+        @Test
+        @DisplayName("Deep copied collections with custom objects should maintain equality")
+        void testCollectionEqualityVsIdentity() throws Exception {
+            // Create a list of test objects
+            List<Person> originalList = new ArrayList<>();
+            originalList.add(new Person("Alice", 25));
+            originalList.add(new Person("Bob", 30));
+            originalList.add(new Person("Charlie", 35));
+            
+            // Deep copy
+            List<Person> copiedList = CopyUtils.deepCopy(originalList);
+            
+            // Verify equality but not identity
+            assertNotSame(originalList, copiedList, "Copied list should not be the same instance (==)");
+            assertEquals(originalList, copiedList, "Copied list should be equal (.equals())");
+            
+            for (int i = 0; i < originalList.size(); i++) {
+                assertNotSame(originalList.get(i), copiedList.get(i), 
+                        "Each element should not be the same instance (==)");
+                assertEquals(originalList.get(i), copiedList.get(i), 
+                        "Each element should be equal (.equals())");
+            }
+            
+            // Modify original and verify copy is unaffected
+            originalList.get(0).setName("Modified Alice");
+            originalList.get(0).setAge(26);
+            
+            // Original element should now be different from copied element
+            assertNotEquals(originalList.get(0), copiedList.get(0), 
+                    "After modification, elements should no longer be equal");
+            assertEquals("Alice", copiedList.get(0).getName(), "Copied element name should remain unchanged");
+            assertEquals(25, copiedList.get(0).getAge(), "Copied element age should remain unchanged");
+        }
+    }
 }
