@@ -16,7 +16,8 @@ public final class InstantiateUtils {
      */
     private static final Unsafe UNSAFE = getUnsafe();
 
-    private InstantiateUtils() {}
+    private InstantiateUtils() {
+    }
 
     /**
      * Creates a new instance of the specified class.

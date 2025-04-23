@@ -16,7 +16,7 @@ public interface ICollectionOp {
      * @param o The object to add to the collection
      */
     void add(Object o);
-    
+
     /**
      * Returns the resulting collection with all added objects.
      *

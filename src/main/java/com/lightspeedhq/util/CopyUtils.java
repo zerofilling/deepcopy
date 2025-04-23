@@ -1,7 +1,7 @@
 package com.lightspeedhq.util;
 
-import com.lightspeedhq.util.collections.ICollectionOp;
 import com.lightspeedhq.util.collections.CollectionOpFactory;
+import com.lightspeedhq.util.collections.ICollectionOp;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
